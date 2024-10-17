@@ -63,13 +63,15 @@
     </style>
 </head>
 <body>
-    <div class="button-container">
+    <!-- <div class="button-container">
         <button class="button">텍스트 챗봇</button>
         <button class="button">이미지 챗봇</button>
         <button class="button">블로그 챗봇</button>
         <button class="button">문의/상담 챗봇</button>
         <a href="http://your-flask-website-url" class="button">게시판</a>
-    </div>
+    </div> -->
+    {% extends 'base.html' %}
+    {% block content %}
     <div class="main-container">
         <div class="left-box">
             <p style="white-space: pre-line;"></p>
@@ -87,5 +89,6 @@
             </p>
         </div>
     </div>
+    {% endblock %}
 </body>
 </html>
