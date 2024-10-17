@@ -1,39 +1,49 @@
 import os
-# import openai
-# from flask import Flask, request, jsonify
+from openai import OpenAI
+from flask import Flask, request, jsonify
 from dotenv import load_dotenv
+import json
+from flask_cors import CORS
 
-# app = Flask(__name__)
-# load_dotenv()
+app = Flask(__name__)
+load_dotenv()
+CORS(app)
 
-os.getenv("OPENAI_API_KEY")
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-# OpenAI API 키 설정 (환경 변수로 저장할 것을 권장)
-# openai.api_key = os.getenv("OPENAI_API_KEY")
+@app.route('/chat', methods=['POST'])
+def chat():
+    # 클라이언트로부터 요청 데이터 받기
+    data = request.json
+    user_input = data.get('message')
 
-# @app.route('/api/generate', methods=['POST'])
-# def generate_text():
-#     data = request.json
-#     prompt = data.get('prompt', '')
+    if not user_input:
+        return jsonify({'error': 'No message provided'}), 400
 
-#     if not prompt:
-#         return jsonify({'error': 'Prompt is required'}), 400
+    try:
+        # OpenAI GPT 모델 호출
+        completion = client.chat.completions.create(
+            model="gpt-4o-mini",  # 사용할 모델 이름
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant."},
+                {"role": "user", "content": user_input}
+            ]
+        )
 
-#     try:
-#         # OpenAI GPT 모델 호출
-#         response = openai.Completion.create(
-#             engine="text-davinci-003",  # 원하는 GPT 엔진 (또는 GPT-4)
-#             prompt=prompt,
-#             max_tokens=100  # 생성할 텍스트의 길이
-#         )
+        # GPT 모델의 응답 처리 (올바른 접근 방식으로 수정)
+        gpt_response = completion.choices[0].message.content.strip()
 
-#         # 응답을 JSON으로 변환하여 반환
-#         return jsonify({
-#             'response': response.choices[0].text.strip()
-#         })
-#     except Exception as e:
-#         return jsonify({'error': str(e)}), 500
+        # 결과를 JSON 형식으로 반환 (json.dumps로 ensure_ascii=False 설정)
+        response_data = json.dumps({'response': gpt_response}, ensure_ascii=False)
 
-# if __name__ == '__main__':
-#     app.run(debug=True)
+        return app.response_class(
+            response=response_data,
+            mimetype='application/json',
+            status=200
+        )
+    except Exception as e:
+        # 에러 발생 시 에러 메시지 반환
+        return jsonify({'error': str(e)}), 500
 
+if __name__ == '__main__':
+    app.run(debug=True)
